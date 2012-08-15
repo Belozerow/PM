@@ -12,16 +12,6 @@
 #include <pwd.h>
 static int g_puid;
 
-static void printRow(int argc, char** argv, char** azColName)
-{
-   int i;
-   for (i = 0; i < argc; i++)
-   {
-      printf("%s: %s\n", azColName[i], argv[i]);
-   }
-}
-
-
 static int executionFailure(char *context)
 {
    fprintf(stderr, "su: %s. Error:%s\n", context, strerror(errno));

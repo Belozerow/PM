@@ -10,56 +10,6 @@ import android.util.Log;
 
 public abstract class ExecuteAsRoot {
 	private static final int EXIT_CODE = 0;
-	public static boolean canRunRootCommands(){
-		boolean retVal = false;
-		Process suProcess;
-		
-		try {
-			suProcess = Runtime.getRuntime().exec("su");
-			DataOutputStream os = new DataOutputStream(suProcess.getOutputStream());
-			DataInputStream osRes = new DataInputStream(suProcess.getInputStream());
-			
-			if(os != null && osRes != null){
-				// Getting the id of the current user to check if this is root
-				
-				os.writeBytes("id\n");
-				os.flush();
-				
-				String currUid = osRes.readLine();
-				boolean exitSu = false;
-				
-				if(currUid == null){
-					retVal = false;
-					exitSu = false;
-					Log.d("ROOT","Can't get root access or denied by user");
-				}
-				else if(currUid.contains("uid=0")){
-					retVal = true;
-					exitSu = true;
-					Log.d("ROOT", "Root access granted");
-				}
-				else{
-					retVal = false;
-					exitSu = true;
-					Log.d("ROOT","Root access rejected: " + currUid);
-				}
-				
-				if(exitSu){
-					os.writeBytes("exit\n");
-					os.flush();
-				}
-				
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			retVal = false;
-			Log.d("ROOT", "Root access rejected [" + e.getClass().getName() + "] : " + e.getMessage());
-		}
-		
-		
-		
-		return retVal;
-	}
 	public void execute(){
 		ExecTask exTask = new ExecTask();
 		exTask.execute();
