@@ -1,0 +1,14 @@
+<resources>
+
+    <string name="app_name">pmtest</string>
+    <string name="menu_settings">Settings</string>
+    <string name="title_activity_main">PMTest</string>
+    <string name="install_path">Install path</string>
+    <string name="uninstall_path">Uninstall package</string>
+    <string name="install_button">Install</string>
+    <string name="uninstall_button">Uninstall</string>
+    <string name="waiting_command">Waiting for a command</string>
+    <string name="success_install">Application %s succesfully installed</string>
+    <string name="success_uninstall">Application %s succesfully uninstalled</string>
+    <string name="execution">"%s" is in process</string>
+</resources>
