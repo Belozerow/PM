@@ -44,6 +44,16 @@
             android:onClick="onUninstallButtonClick"/>
 	</LinearLayout>
 	
+    
+	<Button
+         android:id="@+id/button_sql"
+         android:layout_marginTop="20dp"
+         android:text="@string/button_sql"
+         android:layout_width="fill_parent"
+         android:layout_height="wrap_content"
+         android:onClick="onSqlButtonClick"/>
+	
+	
     <TextView
         android:id="@+id/text_result"
         android:layout_width="fill_parent"

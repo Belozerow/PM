@@ -10,5 +10,11 @@
     <string name="waiting_command">Waiting for a command</string>
     <string name="success_install">Application %s succesfully installed</string>
     <string name="success_uninstall">Application %s succesfully uninstalled</string>
+    <string name="fail_install">Application %s install failed</string>
+    <string name="fail_uninstall">Application %s uninstall failed</string>
     <string name="execution">"%s" is in process</string>
+    <string name="button_show_packages">Show all installed packages</string>
+    <string name="button_sql">Run SQL</string>
+    <string name="success_sql">Query %s succesfully executed</string>
+    <string name="fail_sql">Query %s failed</string>
 </resources>
