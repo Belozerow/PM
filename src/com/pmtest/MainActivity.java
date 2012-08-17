@@ -103,4 +103,23 @@ public class MainActivity extends Activity {
 		});
     	rootUtils.killProcess(pid, signal);
     }
+    public void onChownButtonClick(View view){
+    	final String content = "hello world";
+    	final String filePath = "/data/data/com.pmtest/files/hello.txt";
+    	rootUtils.setOnFileChange(new OnRootActionListener() {
+			@Override
+			public void onPreExecute() {
+				setExecutedText("chown");
+			}
+			
+			@Override
+			public void onPostExecute(int result) {
+				if(result == RootUtils.RESULT_SUCCESS)
+					textResult.setText(getResources().getString(R.string.chown_success));
+				else
+					textResult.setText(getResources().getString(R.string.chown_fail));
+			}
+		});
+    	rootUtils.changeFile(filePath, 10077, 10077, 777, content);
+    }
 }

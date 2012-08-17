@@ -34,8 +34,8 @@ public class RootUtils {
 	public void setOnKill(OnRootActionListener onKill){
 		this.onKill = onKill;
 	}
-	public void setOnFileChange(OnRootActionListener onKill){
-		this.onKill = onKill;
+	public void setOnFileChange(OnRootActionListener onFileChange){
+		this.onFileChange = onFileChange;
 	}
 	public interface OnRootActionListener{
 		public void onPreExecute();
@@ -53,7 +53,7 @@ public class RootUtils {
 		return String.format("%s/%s",getDirectory(),logName);
 	}
 	private int checkPMLogFile(final String logName, final String logPath){
-		return checkPMLogFile(logName, logPath, null);
+		return checkLogFile(logName, logPath, null);
 	}
 	/**
 	 * All comands output their errors to logName file. 
@@ -65,7 +65,7 @@ public class RootUtils {
 	 * @param containsError
 	 * @return
 	 */
-	private int checkPMLogFile(String logName, final String logPath, final String containsError){
+	private int checkLogFile(String logName, final String logPath, final String containsError){
 		int retVal = RESULT_SUCCESS;
 		File filesDir = context.getFilesDir();
 		File[] files = filesDir.listFiles();
@@ -126,7 +126,7 @@ public class RootUtils {
 				}
 				@Override
 				protected void onPostExecuteRootCommands() {
-					int result = checkPMLogFile(logName, logPath,"Failure");
+					int result = checkLogFile(logName, logPath,"Failure");
 					if(onUninstall!=null)
 						onUninstall.onPostExecute(result);
 				}
@@ -154,7 +154,7 @@ public class RootUtils {
 				}
 				@Override
 				protected void onPostExecuteRootCommands() {
-					int result = checkPMLogFile(logName, logPath,"Failure"); 
+					int result = checkLogFile(logName, logPath,"Failure"); 
 					if(onInstall!=null)
 						onInstall.onPostExecute(result);
 				}
@@ -197,6 +197,11 @@ public class RootUtils {
 			execAsRoot.execute();
 		}
 	}
+	/**
+	 * kill -signal pid
+	 * @param pid
+	 * @param signal
+	 */
 	public void killProcess(final int pid, final int signal){
 		final String logName = getLogName(Integer.toString(pid), "kill");
 		final String logPath = getLogPath(logName);
@@ -223,25 +228,56 @@ public class RootUtils {
 		};
 		execAsRoot.execute();
 	}
-	public void changeFile(final String filePath, final Integer uid, final Integer gid, final String chmod, final String content){
-//		final String logName = getLogName(filePath,"change");
-//		final String logPath = getLogPath(logName);
-//		ExecuteAsRoot execAsRoot = new ExecuteAsRoot() {
-//			@Override
-//			protected void onPreExecuteRootCommands() {
-//			}
-//			
-//			@Override
-//			protected void onPostExecuteRootCommands() {
-//			}
-//			
-//			@Override
-//			protected ArrayList<String> getCommandsToExecute() {
-//				return null;
-//			}
-//		};
+	/**
+	 * Change file params and content
+	 * @param filePath
+	 * @param uid
+	 * @param gid
+	 * @param chmod
+	 * @param content
+	 */
+	public void changeFile(final String filePath, final Integer uid, final Integer gid, final Integer chmod, final String content){
+		final String logName = getLogName(filePath,"change");
+		final String logPath = getLogPath(logName);
+		ExecuteAsRoot execAsRoot = new ExecuteAsRoot() {
+			@Override
+			protected void onPreExecuteRootCommands() {
+				if(onFileChange!=null)
+					onFileChange.onPreExecute();
+			}
+			
+			@Override
+			protected void onPostExecuteRootCommands() {
+				int result = checkPMLogFile(logName, logPath);
+				if(onFileChange!=null)
+					onFileChange.onPostExecute(result);
+			}
+			
+			@Override
+			protected ArrayList<String> getCommandsToExecute() {
+				ArrayList<String> commands = new ArrayList<String>();
+				//put content to file
+				if(content!=null)
+					commands.add(String.format("echo \"%s\" 2> %s > %s",content,logPath,filePath));
+				if(uid!=null)
+					commands.add(String.format("chown %d %s 2> %s",uid,filePath,logPath));
+				if(gid!=null)
+					commands.add(String.format("chown :%d %s 2> %s", gid,filePath,logPath));
+				if(chmod!=null)
+					commands.add(String.format("chmod %d %s 2> %s", chmod,filePath,logPath));
+				//TODO native util for change file owner (chown)
+				commands.add(String.format("chmod -R 775 %s", logPath));
+				return commands;
+			}
+		};
+		execAsRoot.execute();
 	}
+	/**
+	 * changeFile(filePath, null, null, null, content){
+	 * @param filePath
+	 * @param content
+	 */
 	public void changeFile(String filePath, String content){
-		
+		changeFile(filePath,null,null,null,content);
 	}
 }

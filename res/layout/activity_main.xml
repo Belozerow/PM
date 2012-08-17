@@ -6,8 +6,18 @@
     android:paddingTop="10dp"
     android:paddingLeft="3dp"
     android:paddingRight="3dp">
+    <TextView
+        android:id="@+id/text_result"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/waiting_command"
+        android:gravity="center_horizontal"
+        android:paddingTop="20dp"
+        />
+    
 	<LinearLayout
 	    android:layout_width="fill_parent"
+	    android:layout_marginTop="20dp"
 	    android:layout_height="wrap_content"
 	    android:orientation="horizontal">
 		<EditText
@@ -71,13 +81,13 @@
          android:layout_height="wrap_content"
          android:onClick="onSqlButtonClick"/>
 	
+	<Button
+         android:id="@+id/button_chown"
+         android:layout_marginTop="20dp"
+         android:text="@string/button_chown"
+         android:layout_width="fill_parent"
+         android:layout_height="wrap_content"
+         android:onClick="onChownButtonClick"/>
 	
-    <TextView
-        android:id="@+id/text_result"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/waiting_command"
-        android:gravity="center_horizontal"
-        android:paddingTop="20dp"
-        />
+	
 </LinearLayout>

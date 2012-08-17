@@ -21,4 +21,7 @@
     <string name="button_kill">KILL!</string>
     <string name="kill_success">SUCCESS. Process %d succesfully killed</string>
     <string name="kill_fail">FAIL. kill process %d</string>
+    <string name="button_chown">Check chown</string>
+    <string name="chown_success">SUCCESS. All this stuff(chown etc.) succesfully executed</string>
+    <string name="chown_fail">FAIL. Some of this things(chown etc.) are broken</string>
 </resources>
