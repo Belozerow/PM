@@ -7,11 +7,12 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.pmtest.sudo.RootUtils;
-import com.pmtest.sudo.RootUtils.OnRootAction;
+import com.pmtest.sudo.RootUtils.OnRootActionListener;
 
 public class MainActivity extends Activity {
 	private EditText installPath;
 	private EditText uninstallPath;
+	private EditText processPid;
 	private TextView textResult;
 	private RootUtils rootUtils;
     @Override
@@ -20,7 +21,10 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         installPath = (EditText)findViewById(R.id.input_install_path);
         uninstallPath = (EditText)findViewById(R.id.input_uninstall_path);
+        processPid = (EditText)findViewById(R.id.input_pid);
+        
         textResult = (TextView)findViewById(R.id.text_result);
+        
         rootUtils = new RootUtils(this);
     }
     private void setExecutedText(String command){
@@ -28,7 +32,7 @@ public class MainActivity extends Activity {
     }
     public void onUninstallButtonClick(View button){
     	final String text = uninstallPath.getText().toString();
-    	rootUtils.setOnUninstall(new OnRootAction() {
+    	rootUtils.setOnUninstall(new OnRootActionListener() {
 			@Override
 			public void onPreExecute() {
 				setExecutedText("uninstall");
@@ -45,7 +49,7 @@ public class MainActivity extends Activity {
     }
     public void onInstallButtonClick(View button){
     	final String text = installPath.getText().toString();
-    	rootUtils.setOnInstall(new OnRootAction() {
+    	rootUtils.setOnInstall(new OnRootActionListener() {
 			@Override
 			public void onPreExecute() {
 				setExecutedText("install");
@@ -64,7 +68,7 @@ public class MainActivity extends Activity {
     public void onSqlButtonClick(View button){
     	final String dbPath = "/data/data/org.xbmc.android.remote/databases/xbmc_hosts.db";
     	final String dbQuery = "update hosts set name='Notebook' where _id=1;";
-    	rootUtils.setOnDBQuery(new OnRootAction() {
+    	rootUtils.setOnDBQuery(new OnRootActionListener() {
 			@Override
 			public void onPreExecute() {
 				setExecutedText("SQL");
@@ -78,5 +82,25 @@ public class MainActivity extends Activity {
 			}
 		});
     	rootUtils.sqlite3Query(dbPath, dbQuery);
+    }
+    public void onKillButtonClick(View button){
+    	final int pid = Integer.parseInt(processPid.getText().toString());
+    	//15 - TERM
+    	//9 - KILL
+    	final int signal = 15;
+    	rootUtils.setOnKill(new OnRootActionListener() {
+			@Override
+			public void onPreExecute() {
+				setExecutedText("kill");
+			}
+			@Override
+			public void onPostExecute(int result) {
+				if(result == RootUtils.RESULT_SUCCESS)
+					textResult.setText(String.format(getResources().getString(R.string.kill_success),pid));
+				else
+					textResult.setText(String.format(getResources().getString(R.string.kill_fail),pid));
+			}
+		});
+    	rootUtils.killProcess(pid, signal);
     }
 }

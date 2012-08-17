@@ -16,12 +16,14 @@ public final class R {
     }
     public static final class id {
         public static final int button_install=0x7f070001;
-        public static final int button_sql=0x7f070004;
+        public static final int button_kill=0x7f070005;
+        public static final int button_sql=0x7f070006;
         public static final int button_uninstall=0x7f070003;
         public static final int input_install_path=0x7f070000;
+        public static final int input_pid=0x7f070004;
         public static final int input_uninstall_path=0x7f070002;
-        public static final int menu_settings=0x7f070006;
-        public static final int text_result=0x7f070005;
+        public static final int menu_settings=0x7f070008;
+        public static final int text_result=0x7f070007;
     }
     public static final class layout {
         public static final int activity_main=0x7f030000;
@@ -31,6 +33,7 @@ public final class R {
     }
     public static final class string {
         public static final int app_name=0x7f040000;
+        public static final int button_kill=0x7f040012;
         public static final int button_show_packages=0x7f04000d;
         public static final int button_sql=0x7f04000e;
         public static final int execution=0x7f04000c;
@@ -39,7 +42,10 @@ public final class R {
         public static final int fail_uninstall=0x7f04000b;
         public static final int install_button=0x7f040005;
         public static final int install_path=0x7f040003;
+        public static final int kill_fail=0x7f040014;
+        public static final int kill_success=0x7f040013;
         public static final int menu_settings=0x7f040001;
+        public static final int pid=0x7f040011;
         public static final int success_install=0x7f040008;
         public static final int success_sql=0x7f04000f;
         public static final int success_uninstall=0x7f040009;

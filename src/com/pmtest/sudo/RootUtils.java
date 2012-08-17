@@ -12,29 +12,60 @@ import android.util.Log;
 
 public class RootUtils {
 	Context context;
-	private OnRootAction onUninstall;
-	private OnRootAction onInstall;
-	private OnRootAction onDBQuery;
+	private OnRootActionListener onUninstall;
+	private OnRootActionListener onInstall;
+	private OnRootActionListener onDBQuery;
+	private OnRootActionListener onKill;
+	private OnRootActionListener onFileChange;
 	public final static int RESULT_SUCCESS = 1;
 	public final static int RESULT_FAIL = 2;
 	public RootUtils(Context context){
 		this.context = context;
 	}
-	public void setOnUninstall(OnRootAction onUninstall){
+	public void setOnUninstall(OnRootActionListener onUninstall){
 		this.onUninstall = onUninstall;
 	}
-	public void setOnInstall(OnRootAction onInstall){
+	public void setOnInstall(OnRootActionListener onInstall){
 		this.onInstall = onInstall;
 	}
-	public void setOnDBQuery(OnRootAction onDBQuery){
+	public void setOnDBQuery(OnRootActionListener onDBQuery){
 		this.onDBQuery = onDBQuery;
 	}
-	public interface OnRootAction{
+	public void setOnKill(OnRootActionListener onKill){
+		this.onKill = onKill;
+	}
+	public void setOnFileChange(OnRootActionListener onKill){
+		this.onKill = onKill;
+	}
+	public interface OnRootActionListener{
 		public void onPreExecute();
 		public void onPostExecute(int result);
 	};
-	
-	private int checkPMLogFile(String logName, final String logPath, String errorContains){
+	private String getDirectory(){
+		return String.format("/data/data/%s/files", context.getPackageName());
+	}
+	private String getLogName(String val, String action){
+		String[] pathSplit = val.split("/"); 
+		final String name = pathSplit[pathSplit.length-1];
+		return String.format("%s.%s.log",name,action).replaceAll("\\s", "");
+	}
+	private String getLogPath(String logName){
+		return String.format("%s/%s",getDirectory(),logName);
+	}
+	private int checkPMLogFile(final String logName, final String logPath){
+		return checkPMLogFile(logName, logPath, null);
+	}
+	/**
+	 * All comands output their errors to logName file. 
+	 * This function checks log file. If it's empty than command was successfully executed.
+	 * But command pm has no error output, it always print "Failure" or "Success" to standard output.
+	 * So if containsError != null then log file checks for containsError.  
+	 * @param logName
+	 * @param logPath
+	 * @param containsError
+	 * @return
+	 */
+	private int checkPMLogFile(String logName, final String logPath, final String containsError){
 		int retVal = RESULT_SUCCESS;
 		File filesDir = context.getFilesDir();
 		File[] files = filesDir.listFiles();
@@ -44,9 +75,16 @@ public class RootUtils {
 					//read log file
 					Scanner fScanner = new Scanner(file);
 					while(fScanner.hasNext()){
-						if(fScanner.next().toLowerCase().contains(errorContains.toLowerCase())){
+						//pm has no error output. it writes Failure or Success to standard output.
+						if(containsError != null){
+							if(fScanner.next().contains(containsError)){
+								retVal = RESULT_FAIL;
+								Log.w("ROOT",logName + " : " + containsError);
+							}
+						}
+						else{
 							retVal = RESULT_FAIL;
-							break;
+							Log.w("ROOT", logName + " : " + fScanner.next());
 						}
 					}
 					fScanner.close();
@@ -75,13 +113,13 @@ public class RootUtils {
 	}
 	public void uninstallPackage(final String packageName){
 		if(packageName.length()>0){
-			final String logName = String.format("%s.uninstall.log",packageName).replaceAll("\\s", "");
-			final String logPath = String.format("/data/data/%s/files/%s",context.getPackageName(),logName);
+			final String logName = getLogName(packageName,"uninstall");
+			final String logPath = getLogPath(logName);
     		ExecuteAsRoot execAsRoot = new ExecuteAsRoot(){
 				@Override
 				protected ArrayList<String> getCommandsToExecute() {
 					ArrayList<String> commands = new ArrayList<String>();
-					commands.add(String.format("pm uninstall %s -s > %s",packageName,logPath));
+					commands.add(String.format("pm uninstall %s > %s",packageName,logPath));
 					//TODO native util for change file owner (chown)
 					commands.add(String.format("chmod -R 775 %s", logPath));
 					return commands;
@@ -103,16 +141,13 @@ public class RootUtils {
 	}
 	public void installPackage(final String packagePath){
 		if(packagePath.length()>0){
-			String[] packagePathSplit = packagePath.split("/"); 
-			final String packageName = packagePathSplit[packagePathSplit.length-1];
-			Log.i("ROOT","PCKG name: "+packageName);
-			final String logName = String.format("%s.install.log",packageName).replaceAll("\\s", "");;
-			final String logPath = String.format("/data/data/%s/files/%s",context.getPackageName(),logName);
+			final String logName = getLogName(packagePath, "install");
+			final String logPath = getLogPath(logName);
     		ExecuteAsRoot execAsRoot = new ExecuteAsRoot() {
 				@Override
 				protected ArrayList<String> getCommandsToExecute() {
 					ArrayList<String> commands = new ArrayList<String>();
-					commands.add(String.format("pm install %s -s 2> %s",packagePath,logPath));
+					commands.add(String.format("pm install %s 2> %s",packagePath,logPath));
 					//TODO native util for change file owner (chown)
 					commands.add(String.format("chmod -R 775 %s", logPath));
 					return commands;
@@ -135,10 +170,9 @@ public class RootUtils {
 	
 	public void sqlite3Query(final String dbPath, final String query){
 		if(query.length()>0 && dbPath.length()>0){
-			String[] dbPathSplit = dbPath.split("/");
-			final String dbName = dbPathSplit[dbPathSplit.length-1];
-			final String logName = String.format("%s.dbquery.log",dbName).replaceAll("\\s", "");
-			final String logPath = String.format("/data/data/%s/files/%s",context.getPackageName(),logName);
+			
+			final String logName = getLogName(dbPath, "dbquery");
+			final String logPath = getLogPath(logName);
 			ExecuteAsRoot execAsRoot = new ExecuteAsRoot() {
 				@Override
 				protected void onPreExecuteRootCommands() {
@@ -147,7 +181,7 @@ public class RootUtils {
 				}
 				@Override
 				protected void onPostExecuteRootCommands() {
-					int result = checkPMLogFile(logName, logPath,"Error"); 
+					int result = checkPMLogFile(logName, logPath); 
 					if(onDBQuery!=null)
 						onDBQuery.onPostExecute(result);
 				}
@@ -162,5 +196,52 @@ public class RootUtils {
 			};
 			execAsRoot.execute();
 		}
+	}
+	public void killProcess(final int pid, final int signal){
+		final String logName = getLogName(Integer.toString(pid), "kill");
+		final String logPath = getLogPath(logName);
+		ExecuteAsRoot execAsRoot = new ExecuteAsRoot() {
+			@Override
+			protected void onPreExecuteRootCommands() {
+				if(onKill!=null)
+					onKill.onPreExecute();
+			}
+			@Override
+			protected void onPostExecuteRootCommands() {
+				int result = checkPMLogFile(logName, logPath); 
+				if(onKill!=null)
+					onKill.onPostExecute(result);
+			}
+			@Override
+			protected ArrayList<String> getCommandsToExecute() {
+				ArrayList<String> commands = new ArrayList<String>();
+				commands.add(String.format("kill -%d %d 2> %s",signal,pid,logPath));
+				//TODO native util for change file owner (chown)
+				commands.add(String.format("chmod -R 775 %s", logPath));
+				return commands;
+			}
+		};
+		execAsRoot.execute();
+	}
+	public void changeFile(final String filePath, final Integer uid, final Integer gid, final String chmod, final String content){
+//		final String logName = getLogName(filePath,"change");
+//		final String logPath = getLogPath(logName);
+//		ExecuteAsRoot execAsRoot = new ExecuteAsRoot() {
+//			@Override
+//			protected void onPreExecuteRootCommands() {
+//			}
+//			
+//			@Override
+//			protected void onPostExecuteRootCommands() {
+//			}
+//			
+//			@Override
+//			protected ArrayList<String> getCommandsToExecute() {
+//				return null;
+//			}
+//		};
+	}
+	public void changeFile(String filePath, String content){
+		
 	}
 }
